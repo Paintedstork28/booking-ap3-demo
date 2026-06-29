@@ -1,0 +1,30 @@
+Project: Booking.com AP3 Demo
+Concept: Interactive demo showing a Booking.com AI travel agent using the Agent Privacy-Preserving Protocol to check loyalty rewards eligibility across Marriott Bonvoy, United MileagePlus, and American Express — without exposing raw account data.
+
+Audience: Product-manager-to-PM partner review (Auth0/Okta, internal Silence Compute stakeholders).
+
+Tech stack: Single static HTML file, vanilla JS, no dependencies.
+
+Flow:
+1. Traveler requests Hawaii family trip under $10k
+2. Agent returns $12k package, flags $2k gap
+3. Agent asks for consent to run AP3 eligibility check
+4. AP3 animation shows PSI → threshold comparison → SFE across 3 partners
+5. Eligibility indicators return (no raw balances)
+6. Package recalculates: $12k → $9,850 with rewards applied
+7. Four package options shown; traveler confirms; fulfilment notice explains next step
+
+Files:
+- index.html — full prototype
+- demo-brief.md — 1-2 pager Notion-ready brief
+
+Deployment: Static HTML — can be hosted on GitHub Pages or dropped into silence-possibilities Vercel project.
+
+APIs/costs: None. All data is hardcoded for demo purposes.
+
+Next steps:
+- Add consent scope toggle controls (enable/disable individual partners)
+- Add rewards-use aggressiveness slider
+- Recalculate package options dynamically when scope changes
+- Add "Outside current consent scope" label when a partner is disabled
+- Deploy to Vercel or GitHub Pages

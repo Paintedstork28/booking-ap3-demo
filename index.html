@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Booking.com — AI Travel Agent</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f2f6fa;color:#333;font-size:14px}
+
+/* ── Header ── */
+.hdr{background:#003580;height:52px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
+.logo{font-size:20px;font-weight:800;color:#fff}.logo span{color:#70b8ff}
+.nav{display:flex;gap:20px}.nav a{color:rgba(255,255,255,.8);text-decoration:none;font-size:13px}
+.nav a.hi{color:#feba02;font-weight:600}
+
+/* ── Chat bar ── */
+.chatbar{background:#fff;border-bottom:1px solid #dde8f0;padding:11px 24px;position:sticky;top:52px;z-index:190;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.chat-inner{max-width:820px;margin:0 auto;display:flex;gap:8px;align-items:center}
+.chat-inp{flex:1;border:2px solid #dde8f0;border-radius:24px;padding:10px 18px;font-size:14px;outline:none;background:#f8fbff;transition:border-color .15s}
+.chat-inp:focus{border-color:#0071c2;background:#fff}
+.chat-inp:disabled{opacity:.5}
+.btn-send{background:#0071c2;color:#fff;border:none;border-radius:24px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s}
+.btn-send:hover{background:#005fa3}.btn-send:disabled{background:#b0c8e0;cursor:default}
+.btn-eg{background:none;border:1px solid #d0e4f5;border-radius:20px;padding:6px 12px;font-size:12px;color:#0071c2;cursor:pointer}
+.btn-eg:hover{background:#ebf3ff}
+.btn-reset{background:none;border:1px solid #e0d0d0;border-radius:20px;padding:6px 14px;font-size:12px;color:#888;cursor:pointer;transition:all .15s}
+.btn-reset:hover{background:#fde8e8;border-color:#c00;color:#c00}
+
+/* ── Convo ── */
+.convo{max-width:820px;margin:0 auto;padding:22px 24px 100px}
+
+/* ── Scenario selector ── */
+.sc-block{margin-bottom:18px}
+.sc-label{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.sc-cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.sc-card{border:2px solid #dde8f0;border-radius:8px;padding:14px;cursor:pointer;background:#fff;transition:all .15s}
+.sc-card:hover{border-color:#0071c2}.sc-card.active{border-color:#0071c2;background:#f0f7ff}
+.sc-budget{font-size:16px;font-weight:800;color:#1a1a2e;margin-bottom:2px}
+.sc-gap{font-size:12px;color:#888;margin-bottom:8px}
+.sc-pill{font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;display:inline-block}
+.sc-ok{background:#d4edda;color:#155724}.sc-warn{background:#fff3cd;color:#856404}
+
+/* ── Reviewer controls ── */
+.rv-wrap{margin-bottom:18px}
+.rv-drop{background:#fff;border:1px solid #dde8f0;border-radius:8px;overflow:hidden}
+.rv-drop summary{padding:11px 16px;display:flex;align-items:center;gap:8px;cursor:pointer;list-style:none;font-size:12px;font-weight:600;color:#555;user-select:none;background:#fafbfc}
+.rv-drop summary::-webkit-details-marker{display:none}
+.rv-drop summary::before{content:"▶";font-size:9px;color:#888;transition:transform .2s}
+.rv-drop[open] summary::before{transform:rotate(90deg)}
+.rv-badge{background:#fff3cd;color:#856404;font-size:10px;padding:2px 8px;border-radius:3px;font-weight:600;margin-left:auto}
+.rv-body{padding:14px 16px;border-top:1px solid #f0f4f8}
+.rc-p{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #f0f4f8}
+.rc-p:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
+
+/* Toggle */
+.tog{display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:8px}
+.tog input{display:none}
+.tog-sl{width:34px;height:18px;background:#ccc;border-radius:9px;position:relative;transition:background .2s;flex-shrink:0}
+.tog-sl::after{content:'';position:absolute;left:2px;top:2px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tog input:checked+.tog-sl{background:#0071c2}
+.tog input:checked+.tog-sl::after{transform:translateX(16px)}
+.tog-lbl{font-size:13px;font-weight:600;color:#333}
+.rc-sub{padding-left:42px}
+.rc-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px;color:#666;flex-wrap:wrap}
+.num-pick{display:flex;gap:4px}
+.nbtn{width:26px;height:26px;border:1px solid #dde8f0;border-radius:4px;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:#666;transition:all .15s}
+.nbtn.on{background:#0071c2;color:#fff;border-color:#0071c2}
+
+/* ── Messages ── */
+.msg{display:flex;gap:10px;margin-bottom:14px;align-items:flex-start}
+.msg.user{flex-direction:row-reverse}
+.av{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+.av-a{background:#003580;color:#fff}.av-u{background:#feba02;color:#1a1a2e}
+.mcol{}
+.mname{font-size:10px;color:#aaa;margin-bottom:3px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.msg.user .mname{text-align:right}
+.bubble{background:#fff;border:1px solid #dde8f0;border-radius:12px;padding:11px 15px;max-width:580px;line-height:1.6;font-size:14px}
+.msg.user .bubble{background:#003580;color:#fff;border-color:#003580}
+.dots{display:flex;gap:4px;padding:2px 0}
+.dots span{width:7px;height:7px;background:#b0c0d0;border-radius:50%;animation:bop 1.2s ease-in-out infinite}
+.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+@keyframes bop{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-6px);opacity:1}}
+
+/* ── Package card ── */
+.pkgcard{background:#fff;border:1px solid #dde8f0;border-radius:10px;overflow:hidden;max-width:580px;box-shadow:0 2px 8px rgba(0,0,0,.05);margin:4px 0}
+.pkg-hero{height:110px;position:relative;display:flex;align-items:flex-end;padding:10px 12px;background:linear-gradient(135deg,#1a6b3c 0%,#2d9b63 45%,#1a7ab5 100%)}
+.pkg-lbl{background:rgba(0,0,0,.5);color:#fff;padding:2px 7px;border-radius:3px;font-size:11px}
+.pkg-ob{position:absolute;top:10px;right:10px;background:#cc1f00;color:#fff;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:700}
+.pkg-body{padding:14px}
+.pkg-title{font-size:15px;font-weight:700;margin-bottom:3px}
+.pkg-sub{color:#6b7c93;font-size:12px;margin-bottom:12px}
+.pkg-items{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:12px}
+.pkg-item{font-size:12px;color:#555;display:flex;gap:6px}
+.pkg-item b{color:#0071c2;font-weight:normal}
+.pkg-foot{display:flex;justify-content:space-between;align-items:flex-end;border-top:1px solid #eef2f7;padding-top:12px}
+.pkg-price{font-size:24px;font-weight:800}
+.pkg-gap-txt{font-size:11px;color:#cc1f00;font-weight:600;margin-top:2px}
+
+/* ── Consent selector ── */
+.ccard{background:#fff;border:1px solid #d4e3f7;border-left:4px solid #0071c2;border-radius:8px;padding:16px;max-width:580px;margin:4px 0}
+.ctitle{font-size:14px;font-weight:700;color:#003580;margin-bottom:12px}
+.all-tog{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #eef2f7}
+.all-tog input{width:16px;height:16px;accent-color:#0071c2;cursor:pointer}
+.all-tog label{font-size:14px;font-weight:600;cursor:pointer}
+.pchecks{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.pcheck{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;border:1px solid #eef2f7;background:#fafcff}
+.pcheck input{width:15px;height:15px;accent-color:#0071c2;cursor:pointer}
+.plogo{width:26px;height:26px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0}
+.pm{background:#8b1a1a;color:#fff}.pu{background:#003087;color:#fff}.pa{background:#016fd0;color:#fff}
+.pname{font-size:13px;font-weight:600}.pdesc{font-size:11px;color:#888}
+.btn-run{background:#0071c2;color:#fff;border:none;border-radius:6px;padding:11px 22px;font-size:14px;font-weight:700;cursor:pointer;transition:background .15s}
+.btn-run:hover{background:#005fa3}.btn-run:disabled{background:#b0c8e0;cursor:default}
+.privnote{font-size:11px;color:#888;margin-top:8px;display:flex;gap:5px}
+
+/* ── AP3 panel ── */
+.ap3{background:#fff;border:1px solid #dde8f0;border-radius:10px;overflow:hidden;max-width:580px;margin:4px 0}
+.ap3-hdr{background:#0d1117;padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+.ap3-ttl{font-size:11px;color:#8b949e;text-transform:uppercase;letter-spacing:1px}
+.ap3-badge{font-size:10px;background:#21262d;color:#6e7681;padding:2px 8px;border-radius:3px}
+.ap3-step{border-bottom:1px solid #f0f4f8}
+.ap3-step:last-child{border-bottom:none}
+.ap3-shdr{padding:12px 14px;display:flex;align-items:flex-start;gap:10px;opacity:0;transition:opacity .4s}
+.ap3-shdr.vis{opacity:1}
+.snum{width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.sn-b{background:#ebf3ff;color:#0071c2}.sn-g{background:#e6f7ee;color:#008234}.sn-done{background:#008234;color:#fff}
+.sinfo{flex:1}.sttl{font-size:13px;font-weight:700;color:#1a1a2e;margin-bottom:2px}
+.ssub{font-size:12px;color:#666}
+.sstat{font-size:11px;padding:3px 8px;border-radius:4px;font-weight:600;white-space:nowrap;margin-top:1px}
+.ss-run{background:#fff4cc;color:#856404}.ss-ok{background:#d4edda;color:#155724}.ss-fail{background:#f8d7da;color:#721c24}
+.prows{padding:0 14px 10px}
+.prow{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed #eef2f7;font-size:12px;opacity:0;transition:opacity .3s}
+.prow:last-child{border-bottom:none}.prow.vis{opacity:1}.prow.excl{opacity:.35}
+.pl{width:26px;height:26px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0}
+.plm{background:#8b1a1a;color:#fff}.plu{background:#003087;color:#fff}.pla{background:#016fd0;color:#fff}
+.pn{font-size:12px;font-weight:600;width:100px;flex-shrink:0}
+.pac{color:#555;flex:1;font-size:11px}
+.pres{font-size:11px;font-weight:700;color:#008234;white-space:nowrap}
+.pres.wait{color:#aaa}.pres.ex{color:#ccc}
+.tr{margin:4px 14px 12px;padding:10px 12px;border-radius:6px;font-size:13px;font-weight:600;opacity:0;transition:opacity .4s;display:flex;align-items:center;gap:10px}
+.tr.vis{opacity:1}.tr.ok{background:#d4edda;color:#155724;border:1px solid #c3e6cb}
+.tr.fail{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
+
+/* Code dropdown */
+.cdrop{border-top:1px solid #f0f4f8}
+.cdrop summary{padding:7px 14px;font-size:11px;color:#0071c2;cursor:pointer;list-style:none;display:flex;align-items:center;gap:5px;background:#f8fbff;user-select:none}
+.cdrop summary::-webkit-details-marker{display:none}
+.cdrop summary::before{content:"▶";font-size:9px;transition:transform .2s}
+.cdrop[open] summary::before{transform:rotate(90deg)}
+.cdrop summary:hover{background:#ebf3ff}
+.cdrop.sc summary{background:#110a20;color:#c9a8ff}
+.cdrop.sc summary:hover{background:#1a1038}
+.cdrop.sc summary::before{color:#c9a8ff}
+.cblk{background:#0d1117;padding:14px 16px;overflow-x:auto;font-family:'SF Mono','Fira Code','Courier New',monospace;font-size:11.5px;line-height:1.7;color:#c9d1d9}
+.c0{color:#6e7681}.c1{color:#ff7b72}.c2{color:#a5d6ff}.c3{color:#79c0ff}.c4{color:#d2a8ff}.c5{color:#56d364}.c6{color:#ffa657}.c7{color:#e3b341}
+
+/* ── Results ── */
+.rcard{background:#fff;border:1px solid #dde8f0;border-radius:10px;overflow:hidden;max-width:580px;margin:4px 0;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.rhdr{padding:14px 16px;color:#fff}
+.rhdr-ok{background:linear-gradient(135deg,#003580,#0071c2)}
+.rhdr-warn{background:linear-gradient(135deg,#7c4d00,#c47a00)}
+.rhdrt{font-size:14px;font-weight:700;margin-bottom:2px}.rhdrs{font-size:12px;opacity:.8}
+.psum{padding:14px 16px;border-bottom:1px solid #f0f4f8}
+.pl2{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f8f8f8;font-size:13px}
+.pl2:last-child{border-bottom:none}
+.pl2 .l{color:#666}.pl2 .v{font-weight:600}
+.pl2.st .v{text-decoration:line-through;color:#aaa}
+.pl2.di .v{color:#008234}
+.pl2.tot .l{font-size:14px;font-weight:700;color:#1a1a2e}
+.pl2.tot .v{font-size:20px;font-weight:800}
+.pl2.tot.gv .v{color:#008234}.pl2.tot.rv .v{color:#cc1f00}
+.bdg{font-size:11px;padding:2px 7px;border-radius:4px;font-weight:700;margin-left:8px}
+.bdg-ok{background:#d4edda;color:#155724}.bdg-ov{background:#f8d7da;color:#721c24}
+.ogrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 16px}
+.ocard{border:2px solid #dde8f0;border-radius:8px;padding:12px;cursor:pointer;transition:all .15s}
+.ocard:hover{border-color:#0071c2}.ocard.sel{border-color:#0071c2;background:#f0f7ff}
+.ocard.rec{border-color:#0071c2}.ocard.oos{opacity:.55;cursor:pointer}
+.rec-lbl{background:#0071c2;color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;display:inline-block;margin-bottom:5px;text-transform:uppercase}
+.oname{font-size:12px;font-weight:700;color:#1a1a2e;margin-bottom:4px}
+.oprice{font-size:18px;font-weight:800;margin-bottom:5px}
+.oprice.g{color:#008234}.oprice.r{color:#cc1f00}
+.otags{display:flex;flex-wrap:wrap;gap:3px}
+.ot{background:#ebf3ff;color:#0071c2;font-size:10px;padding:2px 5px;border-radius:3px}
+.ot.gr{background:#f0f2f5;color:#999}.ot.oo{background:#fde8e8;color:#c00;font-size:9px}
+.pwrap{padding:0 16px 16px}
+.btn-proc{width:100%;background:#003580;color:#fff;border:none;border-radius:6px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;transition:background .15s}
+.btn-proc:hover{background:#002060}.btn-proc:disabled{background:#b0c0d0;cursor:default}
+
+/* ── Account linking ── */
+.lkcard{background:#fff;border:1px solid #dde8f0;border-radius:10px;overflow:hidden;max-width:580px;margin:4px 0}
+.lkhdr{background:#f8fbff;padding:12px 16px;border-bottom:1px solid #eef2f7}
+.lkhtitle{font-size:13px;font-weight:700;color:#003580}.lkhsub{font-size:11px;color:#888;margin-top:2px}
+.lkrows{padding:4px 16px}
+.lkrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f0f4f8}
+.lkrow:last-child{border-bottom:none}
+.lklogo{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0}
+.lkinfo{flex:1}.lkname{font-size:13px;font-weight:600;margin-bottom:2px}
+.lkdebit{font-size:11px;color:#666}.lkdebit.ok{color:#008234;font-weight:600}
+.btn-lk{background:#0071c2;color:#fff;border:none;border-radius:5px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn-lk:hover{background:#005fa3}.btn-lk.done{background:#008234;cursor:default}.btn-lk.busy{background:#5a9fd4;cursor:default}
+
+/* ── Payment ── */
+.paycard{background:#fff;border:1px solid #dde8f0;border-radius:10px;padding:16px;max-width:580px;margin:4px 0}
+.paytitle{font-size:13px;font-weight:700;color:#003580;margin-bottom:14px}
+.payline{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f8f8f8;font-size:13px}
+.payline:last-child{border-bottom:none}
+.payline .l{color:#666}.payline .v{font-weight:700}
+.paytot{display:flex;justify-content:space-between;padding:12px 0;border-top:2px solid #eef2f7;margin:4px 0 14px}
+.paytot .l{font-size:15px;font-weight:700}.paytot .v{font-size:20px;font-weight:800}
+.cardrow{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#f8fbff;border:1px solid #dde8f0;border-radius:6px;margin-bottom:14px}
+.cardicon{font-size:18px}.carddetail{font-size:13px;flex:1}
+.carddetail small{display:block;font-size:11px;color:#888}
+.btn-cfm{width:100%;background:#008234;color:#fff;border:none;border-radius:6px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;transition:background .15s}
+.btn-cfm:hover{background:#006428}.btn-cfm:disabled{background:#b0c0d0;cursor:default}
+
+/* ── Redemption panel ── */
+.rdpanel{background:#0d1117;border-radius:10px;padding:16px;max-width:580px;margin:4px 0;border:1px solid #30363d}
+.rdhdr{font-size:11px;color:#8b949e;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px}
+.rdline{font-family:'SF Mono','Fira Code','Courier New',monospace;font-size:12px;padding:6px 0;border-bottom:1px solid #161b22;color:#c9d1d9;display:flex;align-items:center;gap:10px;opacity:0;transition:opacity .35s}
+.rdline.vis{opacity:1}.rdline:last-child{border-bottom:none}
+.rdok{color:#56d364;font-size:14px;margin-left:auto;opacity:0;transition:opacity .3s}
+
+/* ── Booking confirmation ── */
+.cfmcard{background:#fff;border:2px solid #008234;border-radius:10px;overflow:hidden;max-width:580px;margin:4px 0}
+.cfmhdr{background:#008234;padding:16px;text-align:center;color:#fff}
+.cfmcheck{font-size:32px;margin-bottom:6px}.cfmtitle{font-size:16px;font-weight:700}
+.cfmref{font-size:12px;opacity:.8;margin-top:2px}
+.cfmbody{padding:16px}
+.cfmrow{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f0f4f8;font-size:13px}
+.cfmrow:last-child{border-bottom:none}.cfmrow .l{color:#666}.cfmrow .v{font-weight:600}
+.cfmemail{font-size:12px;color:#888;text-align:center;margin-top:12px;padding-top:12px;border-top:1px solid #f0f4f8}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo">Booking<span>.</span>com</div>
+  <div class="nav">
+    <a href="#">Stays</a><a href="#">Flights</a><a href="#">Packages</a>
+    <a href="#" class="hi">AI Agent ✦</a>
+  </div>
+</div>
+
+<div class="chatbar">
+  <div class="chat-inner">
+    <input class="chat-inp" id="chatInp" type="text"
+      placeholder="Tell me where you want to go, who's travelling, your budget..."
+      onkeydown="if(event.key==='Enter')go()">
+    <button class="btn-send" id="sendBtn" onclick="go()">Send ↵</button>
+    <button class="btn-eg" onclick="fillEg()">Try example ↗</button>
+    <button class="btn-reset" id="resetBtn" onclick="resetFlow()" style="display:none">↺ Reset</button>
+  </div>
+</div>
+
+<div class="convo" id="convo">
+
+  <!-- Scenario selector -->
+  <div class="sc-block" id="scBlock">
+    <div class="sc-label">Select a demo scenario</div>
+    <div class="sc-cards">
+      <div class="sc-card" id="sc1" onclick="useSc(1)">
+        <div class="sc-budget">Budget: $2,000</div>
+        <div class="sc-gap">Package $12,000 · Gap $10,000</div>
+        <div class="sc-pill sc-warn">Rewards help — gap too large</div>
+      </div>
+      <div class="sc-card active" id="sc2" onclick="useSc(2)">
+        <div class="sc-budget">Budget: $10,000</div>
+        <div class="sc-gap">Package $12,000 · Gap $2,000</div>
+        <div class="sc-pill sc-ok">✓ Rewards close the gap</div>
+      </div>
+      <div class="sc-card" id="sc3" onclick="useSc(3)">
+        <div class="sc-budget">Budget: $5,000</div>
+        <div class="sc-gap">Package $12,000 · Gap $7,000</div>
+        <div class="sc-pill sc-warn">Rewards help — gap too large</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reviewer controls -->
+  <div class="rv-wrap" id="rvBlock">
+    <details class="rv-drop">
+      <summary>🔧 Advanced scope controls<span class="rv-badge">Reviewer only — not shown to traveler</span></summary>
+      <div class="rv-body">
+
+        <div class="rc-p">
+          <label class="tog"><input type="checkbox" id="enM" checked onchange="updScope()"><span class="tog-sl"></span><span class="tog-lbl">Marriott Bonvoy</span></label>
+          <div class="rc-sub" id="subM">
+            <div class="rc-row"><span>Point-funded nights:</span>
+              <div class="num-pick" id="npNights">
+                <button class="nbtn" onclick="setN('nights',1,this)">1</button>
+                <button class="nbtn on" onclick="setN('nights',2,this)">2</button>
+                <button class="nbtn" onclick="setN('nights',3,this)">3</button>
+                <button class="nbtn" onclick="setN('nights',4,this)">4</button>
+              </div>
+            </div>
+            <div class="rc-row"><label class="tog"><input type="checkbox" id="enFN" checked onchange="updScope()"><span class="tog-sl"></span><span>Include Free Night Award</span></label></div>
+          </div>
+        </div>
+
+        <div class="rc-p">
+          <label class="tog"><input type="checkbox" id="enU" checked onchange="updScope()"><span class="tog-sl"></span><span class="tog-lbl">United MileagePlus</span></label>
+          <div class="rc-sub" id="subU">
+            <div class="rc-row"><span>Award travel for:</span>
+              <div class="num-pick" id="npPax">
+                <button class="nbtn" onclick="setN('pax',1,this)">1</button>
+                <button class="nbtn on" onclick="setN('pax',2,this)">2</button>
+                <button class="nbtn" onclick="setN('pax',3,this)">3</button>
+                <button class="nbtn" onclick="setN('pax',4,this)">4</button>
+                <button class="nbtn" onclick="setN('pax',5,this)">5</button>
+              </div>
+              <span>family members</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="rc-p">
+          <label class="tog"><input type="checkbox" id="enA" checked onchange="updScope()"><span class="tog-sl"></span><span class="tog-lbl">American Express</span></label>
+          <div class="rc-sub" id="subA">
+            <div class="rc-row"><label class="tog"><input type="checkbox" id="enHC" checked onchange="updScope()"><span class="tog-sl"></span><span>Apply $200 hotel credit</span></label></div>
+            <div class="rc-row"><span>Pay with Points cap:</span>
+              <input type="number" id="pwpCap" value="0" min="0" max="500" step="50"
+                style="width:65px;padding:4px 8px;border:1px solid #dde8f0;border-radius:4px;font-size:12px"
+                onchange="updScope()">
+              <span style="color:#aaa">(0 = don't use)</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </details>
+  </div>
+
+</div><!-- convo -->
+
+<script>
+// ── State ──
+const S = {
+  sc: 2,
+  scope: { m:{en:true,nights:2,fn:true}, u:{en:true,pax:2}, a:{en:true,hc:true,pwp:0} },
+  cp: { m:true, u:true, a:true },
+  selOpt: null,
+  linked: new Set(),
+  started: false
+};
+const PKG = 12000;
+const BUDGETS = {1:2000, 2:10000, 3:5000};
+
+// ── Scenario ──
+function setSc(n) {
+  S.sc = n;
+  [1,2,3].forEach(i=>document.getElementById('sc'+i).classList.toggle('active',i===n));
+}
+function useSc(n) {
+  if(S.started) return;
+  setSc(n);
+  document.getElementById('chatInp').value =
+    `Plan a 5-night Hawaii trip for 2 adults and 3 children under $${BUDGETS[n].toLocaleString()}. We need 2 rooms.`;
+  setTimeout(()=>go(), 350);
+}
+function fillEg() { useSc(S.sc); }
+
+function resetFlow() {
+  S.started = false; S.selOpt = null; S.linked = new Set(); S.cp = {m:true,u:true,a:true};
+  selData = null;
+  document.querySelectorAll('#convo .msg').forEach(e=>e.remove());
+  const inp = document.getElementById('chatInp');
+  inp.disabled = false; inp.value = '';
+  document.getElementById('sendBtn').disabled = false;
+  document.getElementById('resetBtn').style.display = 'none';
+  document.getElementById('scBlock').style.opacity = '1';
+  document.getElementById('scBlock').style.pointerEvents = '';
+  document.getElementById('rvBlock').style.opacity = '1';
+  document.getElementById('rvBlock').style.pointerEvents = '';
+}
+
+// ── Scope ──
+function setN(key, v, btn) {
+  const pid = key==='nights'?'npNights':'npPax';
+  document.querySelectorAll('#'+pid+' .nbtn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  if(key==='nights') S.scope.m.nights=v; else S.scope.u.pax=v;
+}
+function updScope() {
+  S.scope.m.en  = document.getElementById('enM').checked;
+  S.scope.m.fn  = document.getElementById('enFN').checked;
+  S.scope.u.en  = document.getElementById('enU').checked;
+  S.scope.a.en  = document.getElementById('enA').checked;
+  S.scope.a.hc  = document.getElementById('enHC').checked;
+  S.scope.a.pwp = parseInt(document.getElementById('pwpCap').value)||0;
+  document.getElementById('subM').style.opacity = S.scope.m.en?'1':'.4';
+  document.getElementById('subU').style.opacity = S.scope.u.en?'1':'.4';
+  document.getElementById('subA').style.opacity = S.scope.a.en?'1':'.4';
+}
+function calcR() {
+  let tot=0, items=[];
+  const s=S.scope;
+  if(s.m.en){
+    if(s.m.fn){tot+=450;items.push({p:'m',l:'Marriott Free Night Award',v:450})}
+    const pv=s.m.nights*450;tot+=pv;items.push({p:'m',l:`Marriott points (${s.m.nights} nights)`,v:pv});
+  }
+  if(s.u.en){const uv=s.u.pax*300;tot+=uv;items.push({p:'u',l:`United award travel (${s.u.pax} pax)`,v:uv});}
+  if(s.a.en){
+    if(s.a.hc){tot+=200;items.push({p:'a',l:'Amex hotel credit',v:200});}
+    if(s.a.pwp>0){tot+=s.a.pwp;items.push({p:'a',l:'Amex Pay with Points',v:s.a.pwp});}
+  }
+  return {tot,items};
+}
+
+// ── Conversation helpers ──
+const C = ()=>document.getElementById('convo');
+function appendMsg(user, html, id='') {
+  C().insertAdjacentHTML('beforeend', `
+    <div class="msg ${user?'user':''}" ${id?`id="${id}"`:''}><div class="av ${user?'av-u':'av-a'}">${user?'A':'B'}</div>
+    <div class="mcol"><div class="mname">${user?'You':'Booking.com AI Agent'}</div>
+    <div class="bubble">${html}</div></div></div>`);
+  sb();
+}
+function appendCard(html, id='') {
+  C().insertAdjacentHTML('beforeend', `
+    <div class="msg" ${id?`id="${id}"`:''}><div class="av av-a">B</div>
+    <div class="mcol"><div class="mname">Booking.com AI Agent</div>${html}</div></div>`);
+  sb();
+}
+function dots(id) {
+  C().insertAdjacentHTML('beforeend', `
+    <div class="msg" id="${id}"><div class="av av-a">B</div>
+    <div class="mcol"><div class="mname">Booking.com AI Agent</div>
+    <div class="bubble"><div class="dots"><span></span><span></span><span></span></div></div></div></div>`);
+  sb();
+}
+function rmdots(id){const e=document.getElementById(id);if(e)e.remove();}
+function sb(){window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});}
+function vis(id,d=0){setTimeout(()=>{const e=document.getElementById(id);if(e)e.classList.add('vis');},d);}
+function setR(id,t){const e=document.getElementById(id);if(e){e.textContent=t;e.classList.remove('wait');}}
+
+// ── Main flow ──
+function go() {
+  const inp=document.getElementById('chatInp');
+  const v=inp.value.trim();
+  if(!v||S.started) return;
+  S.started=true;
+  document.getElementById('sendBtn').disabled=true;
+  document.getElementById('resetBtn').style.display='';
+  inp.disabled=true;
+  document.getElementById('scBlock').style.opacity='.55';
+  document.getElementById('scBlock').style.pointerEvents='none';
+  document.getElementById('rvBlock').style.opacity='.55';
+  document.getElementById('rvBlock').style.pointerEvents='none';
+
+  appendMsg(true,v); inp.value='';
+  setTimeout(()=>dots('d1'),400);
+  setTimeout(()=>{rmdots('d1');appendMsg(false,'✈ Searching packages — Hawaii, 5 nights, 2 adults, 3 children, 2 rooms…');},1200);
+  setTimeout(()=>{ appendMsg(false,'Here\'s what I found:'); appendPkg(); },2400);
+  setTimeout(()=>appendConsent(),3800);
+}
+
+const GAP_DETAIL = {
+  1: ['5 nights for a family of 5 with 2 rooms costs $12,000','Your $2,000 budget covers roughly a 1-night solo stay — no flights, no full family accommodation','The gap between your budget and your ask is $10,000'],
+  2: ['5 nights for a family of 5 with 2 rooms and return flights costs $12,000','Your $10,000 budget falls $2,000 short of the full package','To match your ask exactly, the best available price is $12,000'],
+  3: ['5 nights for a family of 5 with 2 rooms and return flights costs $12,000','Your $5,000 budget covers roughly a 2-night break for 2 people — not the full family trip','The gap between your budget and your ask is $7,000']
+};
+
+function appendPkg() {
+  const budget=BUDGETS[S.sc], gap=PKG-budget;
+  const details=GAP_DETAIL[S.sc];
+
+  appendMsg(false,
+    `<strong style="color:#cc1f00">Your $${budget.toLocaleString()} budget is not enough for this trip as requested.</strong><br><br>
+    <div style="background:#fff8f8;border:1px solid #f5c6cb;border-radius:6px;padding:10px 14px;margin:6px 0;font-size:13px;line-height:1.8">
+      <div>📋 <strong>What you asked for:</strong> 5 nights · 2 adults · 3 children · 2 rooms · return flights for 5</div>
+      <div style="margin-top:6px;color:#666">— ${details[0]}</div>
+      <div style="color:#666">— ${details[1]}</div>
+      <div style="margin-top:6px;font-weight:700;color:#cc1f00">Gap: $${gap.toLocaleString()} · ${details[2]}</div>
+    </div><br>
+    The best available package for your exact ask:`);
+
+  appendCard(`<div class="pkgcard">
+    <div class="pkg-hero">
+      <div class="pkg-lbl">Your request — Hawaii, 5 nights, family of 5</div>
+      <div class="pkg-ob">$${gap.toLocaleString()} over your budget</div>
+    </div>
+    <div class="pkg-body">
+      <div class="pkg-title">Hawaii Family Vacation — 5 Nights</div>
+      <div class="pkg-sub">2 adults · 3 children · 2 rooms · Return flights included</div>
+      <div class="pkg-items">
+        <div class="pkg-item"><b>✈</b> Return flights for 5 (United)</div>
+        <div class="pkg-item"><b>🏨</b> 2 rooms · 5 nights (Marriott Waikiki)</div>
+        <div class="pkg-item"><b>🍳</b> Breakfast included</div>
+        <div class="pkg-item"><b>🏖</b> Resort fees &amp; taxes included</div>
+      </div>
+      <div class="pkg-foot">
+        <div><div class="pkg-price">$${PKG.toLocaleString()}</div>
+        <div class="pkg-gap-txt">↑ $${gap.toLocaleString()} above your $${budget.toLocaleString()} budget</div></div>
+      </div>
+    </div></div>`);
+}
+
+function appendConsent() {
+  const budget=BUDGETS[S.sc], gap=PKG-budget;
+  appendMsg(false,`This package is <strong>$${gap.toLocaleString()} above your $${budget.toLocaleString()} budget.</strong><br><br>
+    You may have loyalty rewards across Marriott Bonvoy, United MileagePlus, and American Express that could help.<br><br>
+    With your permission, I can check your eligibility in a <strong>privacy-preserving fashion</strong> — Booking.com receives only eligibility indicators, not your balances or account history.`);
+  setTimeout(()=>appendConsentSel(),400);
+}
+
+function appendConsentSel() {
+  appendCard(`<div class="ccard">
+    <div class="ctitle">Which partners may I check eligibility with?</div>
+    <div class="all-tog">
+      <input type="checkbox" id="csAll" checked onchange="togAll(this)">
+      <label for="csAll">All partners (recommended)</label>
+    </div>
+    <div class="pchecks">
+      <div class="pcheck"><input type="checkbox" id="csM" checked onchange="syncAll()">
+        <div class="plogo pm">M</div><div><div class="pname">Marriott Bonvoy</div><div class="pdesc">Hotel loyalty partner</div></div></div>
+      <div class="pcheck"><input type="checkbox" id="csU" checked onchange="syncAll()">
+        <div class="plogo pu">UA</div><div><div class="pname">United MileagePlus</div><div class="pdesc">Airline loyalty partner</div></div></div>
+      <div class="pcheck"><input type="checkbox" id="csA" checked onchange="syncAll()">
+        <div class="plogo pa">AX</div><div><div class="pname">American Express</div><div class="pdesc">Card &amp; rewards partner</div></div></div>
+    </div>
+    <button class="btn-run" id="btnRun" onclick="runCheck()">🔒 Check rewards eligibility</button>
+    <div class="privnote">🔐 Powered by Agent Privacy-Preserving Protocol · Silence Compute</div>
+  </div>`);
+}
+
+function togAll(cb) {
+  ['csM','csU','csA'].forEach(id=>document.getElementById(id).checked=cb.checked);
+  document.getElementById('btnRun').disabled=!cb.checked;
+}
+function syncAll() {
+  const m=document.getElementById('csM').checked, u=document.getElementById('csU').checked, a=document.getElementById('csA').checked;
+  document.getElementById('csAll').checked=m&&u&&a;
+  document.getElementById('btnRun').disabled=!m&&!u&&!a;
+}
+
+function runCheck() {
+  S.cp = {
+    m: document.getElementById('csM').checked && S.scope.m.en,
+    u: document.getElementById('csU').checked && S.scope.u.en,
+    a: document.getElementById('csA').checked && S.scope.a.en
+  };
+  document.getElementById('btnRun').disabled=true;
+  document.getElementById('btnRun').textContent='Checking…';
+  const names=[S.cp.m&&'Marriott Bonvoy',S.cp.u&&'United MileagePlus',S.cp.a&&'American Express'].filter(Boolean);
+  appendMsg(true,`Yes — check with ${names.join(', ')}.`);
+  setTimeout(()=>{appendAP3();animateAP3();},600);
+}
+
+// ── AP3 Panel ──
+function prow(id,logoCls,logoTxt,name,action,excl) {
+  return `<div class="prow${excl?' excl':''}" id="${id}">
+    <div class="pl ${logoCls}">${logoTxt}</div>
+    <div class="pn">${name}</div>
+    <div class="pac">${excl?'Excluded from consent scope':action}</div>
+    <div class="pres ${excl?'ex':'wait'}" id="r-${id}">—</div>
+  </div>`;
+}
+
+function appendAP3() {
+  const cp=S.cp, budget=BUDGETS[S.sc];
+  appendCard(`<div class="ap3" id="ap3Panel">
+    <div class="ap3-hdr">
+      <div class="ap3-ttl">Agent Privacy-Preserving Protocol</div>
+      <div class="ap3-badge">background · not shown to traveler</div>
+    </div>
+
+    <div class="ap3-step">
+      <div class="ap3-shdr" id="psiH">
+        <div class="snum sn-b" id="psiN">1</div>
+        <div class="sinfo"><div class="sttl">Identity Check — PSI</div>
+          <div class="ssub">No raw customer identifiers are shared with partners</div></div>
+        <div class="sstat ss-run" id="psiSt">Running…</div>
+      </div>
+      <div class="prows">
+        ${prow('psim','plm','M','Marriott Bonvoy','Sending hashed identity token…',!cp.m)}
+        ${prow('psiu','plu','UA','United MileagePlus','Sending hashed identity token…',!cp.u)}
+        ${prow('psia','pla','AX','American Express','Sending hashed identity token…',!cp.a)}
+      </div>
+      <details class="cdrop"><summary>View protocol code — PSI</summary>
+        <div class="cblk">${cPSI()}</div></details>
+      <details class="cdrop sc"><summary>🔐 View secure function — runs inside Silence Compute</summary>
+        <div class="cblk">${cPSIFunc()}</div></details>
+    </div>
+
+    <div class="ap3-step">
+      <div class="ap3-shdr" id="thH">
+        <div class="snum sn-g" id="thN">2</div>
+        <div class="sinfo"><div class="sttl">Threshold Check</div>
+          <div class="ssub">Is (package cost − rewards identified) ≤ $${budget.toLocaleString()}?</div></div>
+        <div class="sstat ss-run" id="thSt" style="display:none">Running…</div>
+      </div>
+      <div class="prows">
+        ${prow('thm','plm','M','Marriott Bonvoy','Evaluating points &amp; awards…',!cp.m)}
+        ${prow('thu','plu','UA','United MileagePlus','Evaluating miles…',!cp.u)}
+        ${prow('tha','pla','AX','American Express','Evaluating benefits (SFE)…',!cp.a)}
+      </div>
+      <div class="tr" id="trResult"></div>
+      <details class="cdrop"><summary>View protocol code — Threshold Check</summary>
+        <div class="cblk">${cThresh()}</div></details>
+      <details class="cdrop sc"><summary>🔐 View secure function — runs inside Silence Compute</summary>
+        <div class="cblk">${cDiscountFunc()}</div></details>
+    </div>
+  </div>`);
+}
+
+function animateAP3() {
+  const cp=S.cp;
+  const rw=calcR();
+  const finalCost=PKG-rw.tot;
+  const budget=BUDGETS[S.sc];
+  const ok=finalCost<=budget;
+
+  // PSI row fade-ins (all rows appear, excluded are faded)
+  vis('psiH',0);
+  vis('psim',300); vis('psiu',550); vis('psia',800);
+
+  // PSI results for consented partners
+  setTimeout(()=>{
+    if(cp.m) setR('r-psim','✓ Matched');
+    if(cp.u) setR('r-psiu','✓ Matched');
+    if(cp.a) setR('r-psia','✓ Matched');
+  },1500);
+
+  // PSI done
+  setTimeout(()=>{
+    const n=document.getElementById('psiN'), s=document.getElementById('psiSt');
+    n.className='snum sn-done'; n.textContent='✓';
+    s.className='sstat ss-ok'; s.textContent='✓ Complete';
+  },1900);
+
+  // Threshold step starts
+  setTimeout(()=>{
+    vis('thH',0);
+    document.getElementById('thSt').style.display='';
+    vis('thm',100); vis('thu',350); vis('tha',600);
+  },2200);
+
+  // Threshold results per partner
+  const mv = (S.scope.m.en&&cp.m) ? '$'+((S.scope.m.fn?450:0)+S.scope.m.nights*450).toLocaleString()+' identified' : null;
+  const uv = (S.scope.u.en&&cp.u) ? '$'+(S.scope.u.pax*300).toLocaleString()+' identified' : null;
+  const av = (S.scope.a.en&&cp.a) ? '$'+((S.scope.a.hc?200:0)+S.scope.a.pwp).toLocaleString()+' identified' : null;
+
+  setTimeout(()=>{ if(mv) setR('r-thm',mv); },3200);
+  setTimeout(()=>{ if(uv) setR('r-thu',uv); },3500);
+  setTimeout(()=>{ if(av) setR('r-tha',av); },3800);
+
+  // Final threshold result
+  setTimeout(()=>{
+    const el=document.getElementById('trResult');
+    el.className='tr '+(ok?'ok':'fail')+' vis';
+    el.innerHTML = ok
+      ? `<span style="font-size:18px">✓</span> $${PKG.toLocaleString()} − $${rw.tot.toLocaleString()} = <strong>$${finalCost.toLocaleString()}</strong> ≤ $${budget.toLocaleString()} — within budget`
+      : `<span style="font-size:18px">✗</span> $${PKG.toLocaleString()} − $${rw.tot.toLocaleString()} = <strong>$${finalCost.toLocaleString()}</strong> > $${budget.toLocaleString()} — gap not fully closeable with available rewards`;
+    const s=document.getElementById('thSt');
+    s.className='sstat '+(ok?'ss-ok':'ss-fail');
+    s.textContent=ok?'✓ Complete':'✗ Partial';
+    const n=document.getElementById('thN');
+    if(ok){n.className='snum sn-done';n.textContent='✓';}
+    sb();
+  },4200);
+
+  // Show results
+  setTimeout(()=>{
+    const intro = ok
+      ? 'Done. Your eligible rewards bring this package within budget. Here are your options:'
+      : `Done. I found <strong>$${rw.tot.toLocaleString()}</strong> in eligible rewards — reduces the package to <strong>$${finalCost.toLocaleString()}</strong>, which is still above your $${budget.toLocaleString()} budget. Here are the discounted options — you can still proceed with any of them:`;
+    appendMsg(false,intro);
+    appendResults(rw, finalCost, ok);
+  },5200);
+}
+
+// ── Results ──
+function appendResults(rw, finalCost, ok) {
+  const budget=BUDGETS[S.sc];
+  const lines=rw.items.map(it=>`<div class="pl2 di"><span class="l">${it.l}</span><span class="v">−$${it.v.toLocaleString()}</span></div>`).join('');
+  const opts=buildOpts();
+  appendCard(`<div class="rcard" id="rCard">
+    <div class="rhdr ${ok?'rhdr-ok':'rhdr-warn'}">
+      <div class="rhdrt">${ok?'Recommended package — rewards applied':'Best available — rewards applied'}</div>
+      <div class="rhdrs">Eligibility indicators received · no raw balances shared</div>
+    </div>
+    <div class="psum">
+      <div class="pl2 st"><span class="l">Original package</span><span class="v">$${PKG.toLocaleString()}</span></div>
+      ${lines}
+      <div class="pl2 tot ${ok?'gv':'rv'}">
+        <span class="l">Total <span class="bdg ${ok?'bdg-ok':'bdg-ov'}">${ok?'✓ Under budget':'✗ Over budget'}</span></span>
+        <span class="v">$${finalCost.toLocaleString()}</span>
+      </div>
+    </div>
+    <div style="padding:12px 16px 4px;font-size:12px;font-weight:700;color:#555">All options — select to proceed</div>
+    <div class="ogrid">${opts}</div>
+    <div class="pwrap"><button class="btn-proc" id="btnProc" disabled onclick="doProceed()">Select an option to proceed</button></div>
+  </div>`);
+}
+
+const OPTS = [
+  { id:'blended', rec:true,  name:'Blended — all rewards', price:9850,  needs:['m','u','a'],
+    tags:[{l:'Free Night',g:1},{l:'Marriott pts',g:1},{l:'United miles',g:1},{l:'Amex credit',g:1}] },
+  { id:'mfirst',  rec:false, name:'Marriott-first',        price:10180, needs:['m'],
+    tags:[{l:'Free Night',g:1},{l:'120k pts',g:1},{l:'United unused',g:0},{l:'Amex unused',g:0}] },
+  { id:'ufirst',  rec:false, name:'United-first',          price:10420, needs:['u'],
+    tags:[{l:'140k miles',g:1},{l:'Marriott unused',g:0},{l:'Amex unused',g:0}] },
+  { id:'aonly',   rec:false, name:'Amex-only bridge',      price:11650, needs:['a'],
+    tags:[{l:'$200 credit',g:1},{l:'Pay w/ Points',g:1},{l:'Marriott unused',g:0},{l:'United unused',g:0}] }
+];
+
+function buildOpts() {
+  const cp=S.cp, budget=BUDGETS[S.sc];
+  return OPTS.map(o=>{
+    const oos=o.needs.some(p=>!cp[p]);
+    const under=o.price<=budget;
+    const recH=o.rec?'<div class="rec-lbl">Recommended</div>':'';
+    const tagsH=o.tags.map(t=>`<span class="ot ${t.g?'':'gr'}">${t.l}</span>`).join('');
+    const oosTxt=oos?'<div style="font-size:10px;color:#c00;margin-top:4px">Outside consent scope</div>':'';
+    const click=`selOpt('${o.id}','${o.name.replace(/'/g,"\\'")}',${o.price},${oos})`;
+    return `<div class="ocard ${o.rec?'rec':''} ${oos?'oos':''}" id="oc-${o.id}" onclick="${click}">
+      ${recH}<div class="oname">${o.name}</div>
+      <div class="oprice ${under?'g':'r'}">$${o.price.toLocaleString()}</div>
+      <div class="otags">${tagsH}</div>${oosTxt}</div>`;
+  }).join('');
+}
+
+let selData=null;
+function selOpt(id, name, price, oos=false) {
+  document.querySelectorAll('.ocard').forEach(c=>c.classList.remove('sel'));
+  document.getElementById('oc-'+id).classList.add('sel');
+  selData={id,name,price}; S.selOpt=id;
+  const over=price>BUDGETS[S.sc];
+  const btn=document.getElementById('btnProc');
+  btn.disabled=false;
+  const label = oos
+    ? `Proceed with ${name} — $${price.toLocaleString()} (outside consent scope) →`
+    : `Proceed with ${name} — $${price.toLocaleString()}${over?' (still over budget)':''} →`;
+  btn.textContent=label;
+  btn.style.background=oos?'#555':(over?'#7c4d00':'#003580');
+}
+
+// ── Linking ──
+const LKDATA = {
+  blended:{ partners:['m','u','a'], debits:{ m:'1 Free Night Award + 96,000 Marriott points', u:'70,000 MileagePlus miles (2 pax, outbound)', a:'$200 hotel credit' } },
+  mfirst: { partners:['m'],        debits:{ m:'1 Free Night Award + 120,000 Marriott points' } },
+  ufirst: { partners:['u'],        debits:{ u:'140,000 MileagePlus miles (2 pax, round-trip)' } },
+  aonly:  { partners:['a'],        debits:{ a:'$200 hotel credit + Pay with Points (partial)' } }
+};
+const PMETA = {
+  m:{ short:'M',  cls:'plm', name:'Marriott Bonvoy' },
+  u:{ short:'UA', cls:'plu', name:'United MileagePlus' },
+  a:{ short:'AX', cls:'pla', name:'American Express' }
+};
+
+function doProceed() {
+  if(!selData) return;
+  appendMsg(true,`Proceed with ${selData.name} — $${selData.price.toLocaleString()}.`);
+  document.getElementById('btnProc').disabled=true;
+  setTimeout(()=>appendLinking(),500);
+}
+
+function appendLinking() {
+  const cfg=LKDATA[S.selOpt]||LKDATA.blended;
+  const rows=cfg.partners.map(p=>{
+    const m=PMETA[p];
+    return `<div class="lkrow" id="lkr-${p}">
+      <div class="lklogo ${m.cls}">${m.short}</div>
+      <div class="lkinfo"><div class="lkname">${m.name}</div>
+        <div class="lkdebit" id="lkd-${p}">${cfg.debits[p]}</div></div>
+      <button class="btn-lk" id="blk-${p}" onclick="lkAcc('${p}')">Connect account</button>
+    </div>`;
+  }).join('');
+  appendCard(`<div class="lkcard" id="lkCard">
+    <div class="lkhdr"><div class="lkhtitle">Step 2 of 3 — Link reward accounts</div>
+      <div class="lkhsub">Connect your accounts to authorise rewards redemption. Your data is shared directly with each partner, not with Booking.com.</div></div>
+    <div class="lkrows">${rows}</div>
+  </div>`);
+}
+
+function lkAcc(p) {
+  const btn=document.getElementById('blk-'+p);
+  btn.textContent='Connecting…'; btn.className='btn-lk busy'; btn.disabled=true;
+  setTimeout(()=>{
+    btn.textContent='Connected ✓'; btn.className='btn-lk done';
+    document.getElementById('lkd-'+p).classList.add('ok');
+    S.linked.add(p);
+    checkLinked();
+  },1600);
+}
+function checkLinked() {
+  const cfg=LKDATA[S.selOpt]||LKDATA.blended;
+  if(cfg.partners.every(p=>S.linked.has(p))) setTimeout(appendPay,400);
+}
+
+// ── Payment ──
+function appendPay() {
+  const price=selData.price;
+  const disc=PKG-price;
+  appendCard(`<div class="paycard" id="payCard">
+    <div class="paytitle">Step 3 of 3 — Confirm &amp; pay</div>
+    <div class="payline"><span class="l">Package price</span><span class="v">$${PKG.toLocaleString()}</span></div>
+    <div class="payline" style="color:#008234"><span class="l">Rewards applied</span><span class="v">−$${disc.toLocaleString()}</span></div>
+    <div class="paytot"><span class="l">You pay</span><span class="v">$${price.toLocaleString()}</span></div>
+    <div class="cardrow"><span class="cardicon">💳</span>
+      <div class="carddetail">Visa ending ●●●● 4242 <small>Saved card · billing address on file</small></div></div>
+    <button class="btn-cfm" id="btnCfm" onclick="confirm()">Confirm Booking — $${price.toLocaleString()}</button>
+  </div>`);
+}
+
+// ── Confirmation ──
+function confirm() {
+  const btn=document.getElementById('btnCfm');
+  btn.disabled=true; btn.textContent='Processing…';
+  const cfg=LKDATA[S.selOpt]||LKDATA.blended;
+  const price=selData.price;
+  const ref='BKG-HI-'+Math.random().toString(36).substr(2,6).toUpperCase();
+  const lines=cfg.partners.map((p,i)=>`<div class="rdline" id="rd${i}">
+    <span style="color:#ffa657">→</span>
+    <span>${PMETA[p].name.toLowerCase().replace(/ /g,'_')}.debit({ "${cfg.debits[p]}" })</span>
+    <span class="rdok" id="rdok${i}">✓</span></div>`).join('');
+  appendCard(`<div class="rdpanel" id="rdPanel">
+    <div class="rdhdr">Redemption — partner debits</div>
+    ${lines}
+    <div class="rdline" id="rdbook" style="margin-top:8px;border-top:1px solid #30363d;padding-top:8px">
+      <span style="color:#ffa657">→</span>
+      <span>booking.confirm({ ref:"${ref}", charged:${price}, card:"●●●● 4242" })</span>
+      <span class="rdok" id="rdok-book">✓</span>
+    </div>
+  </div>`);
+
+  cfg.partners.forEach((p,i)=>{
+    setTimeout(()=>vis('rd'+i),300+i*450);
+    setTimeout(()=>{ const e=document.getElementById('rdok'+i); if(e) e.style.opacity='1'; },720+i*450);
+  });
+  const d=400+cfg.partners.length*450;
+  setTimeout(()=>vis('rdbook'),d);
+  setTimeout(()=>{ const e=document.getElementById('rdok-book'); if(e) e.style.opacity='1'; },d+400);
+  setTimeout(()=>appendConfirm(ref,price),d+900);
+}
+
+function appendConfirm(ref, price) {
+  appendCard(`<div class="cfmcard">
+    <div class="cfmhdr"><div class="cfmcheck">✓</div>
+      <div class="cfmtitle">Booking Confirmed</div>
+      <div class="cfmref">Reference: ${ref}</div></div>
+    <div class="cfmbody">
+      <div class="cfmrow"><span class="l">Destination</span><span class="v">Hawaii, USA</span></div>
+      <div class="cfmrow"><span class="l">Duration</span><span class="v">5 nights</span></div>
+      <div class="cfmrow"><span class="l">Travelers</span><span class="v">2 adults · 3 children</span></div>
+      <div class="cfmrow"><span class="l">Hotel</span><span class="v">Marriott Waikiki · 2 rooms</span></div>
+      <div class="cfmrow"><span class="l">Flights</span><span class="v">United Airlines · 5 pax return</span></div>
+      <div class="cfmrow"><span class="l">Total charged</span><span class="v" style="color:#008234;font-size:16px">$${price.toLocaleString()}</span></div>
+      <div class="cfmemail">Confirmation sent to ambikapande28@gmail.com</div>
+    </div></div>`);
+  appendMsg(false,'Your Hawaii family trip is confirmed. Enjoy your holiday! 🌺');
+  setTimeout(()=>appendMsg(false,`<strong>Here's what happened behind the scenes.</strong><br><br>
+Your package came in at <strong>$${PKG.toLocaleString()}</strong> — above your budget. Rather than ask you to manually connect every loyalty account upfront, I checked whether you were eligible for rewards across Marriott Bonvoy, United MileagePlus, and American Express — with your consent.<br><br>
+At no point was your raw account data, loyalty balance, or personal identifiers shared with Booking.com or between partners. Your identity was matched using a privacy-preserving check — each partner confirmed you were a member without revealing their member records to anyone else.<br><br>
+Each partner then evaluated whether you had applicable rewards for this specific booking. They returned only eligibility indicators — signals that said <em>"yes, this traveler has sufficient rewards to cover this portion"</em> — not balances, not account history, not transaction records.<br><br>
+Booking.com used those indicators to calculate your package options and recommend the best one. Your rewards were only debited after you explicitly connected your accounts and confirmed the booking.<br><br>
+<span style="color:#888;font-size:13px">Powered by the Agent Privacy-Preserving Protocol · Silence Compute</span>`), 1200);
+
+}
+
+// ── Code snippets ──
+function cPSI() {
+  return `<span class="c0">// AP3 — Step 1: Private Set Intersection
+// Confirms traveler exists in partner systems.
+// Booking.com's user list and partner member lists are never exposed.</span>
+
+<span class="c1">const</span> psiReq = {
+  protocol:       <span class="c2">"AP3/PSI/v1"</span>,
+  initiator:      <span class="c2">"booking-com-agent"</span>,
+  purpose_hash:   <span class="c4">sha256</span>(<span class="c2">"rewards_eligibility_hawaii_5n_family"</span>),
+  traveler_token: <span class="c4">hmac</span>(traveler.id, sessionKey), <span class="c0">// one-way — raw ID never shared</span>
+  partners:       [<span class="c2">"marriott-bonvoy"</span>, <span class="c2">"united-mileageplus"</span>, <span class="c2">"amex"</span>]
+};
+
+<span class="c1">const</span> psi = <span class="c1">await</span> silenceCompute.<span class="c4">runPSI</span>(psiReq);
+
+<span class="c5">// Response — no raw IDs, no account numbers
+// { matched: true,
+//   session_token: "sc_a3f92c…",
+//   partners: ["marriott-bonvoy", "united-mileageplus", "amex"] }</span>`;
+}
+
+function cPSIFunc() {
+  return `<span class="c7">══ SECURE FUNCTION — Identity Check (PSI) ═════════════════════
+   Runs inside Silence Compute · Trusted Execution Environment
+   Called once per partner. Same function for Marriott, United, Amex.</span>
+
+<span class="c6">─── PRIVATE INPUT  (partner-provided · attested to Silence Compute) ─</span>
+<span class="c0">#   Booking.com NEVER sees this data. Not in transit, not in logs.</span>
+private_input = {
+    <span class="c2">'member_tokens'</span>: <span class="c4">set</span>([...<span class="c4">HMAC</span>(member_id, partner_secret_key)...])
+    <span class="c0">#               ↑  full member list, hashed with partner's own key</span>
+    <span class="c0">#                  list size, values, and member count never revealed</span>
+}
+
+<span class="c6">─── PUBLIC INPUT  (Booking.com · known to initiator) ─────────────────</span>
+<span class="c0">#   Sent openly to Silence Compute. No secrets here.</span>
+public_input = {
+    <span class="c2">'traveler_token'</span>: <span class="c4">HMAC</span>(traveler.id, session_key)
+    <span class="c0">#                  ↑  one-way hash of the traveler's ID</span>
+    <span class="c0">#                     raw traveler ID is never transmitted</span>
+}
+
+<span class="c6">─── FUNCTION  (executes inside secure enclave — neither party sees this run) ──</span>
+<span class="c1">def</span> <span class="c4">psi_identity_check</span>(private_input, public_input):
+    matched = public_input[<span class="c2">'traveler_token'</span>] <span class="c1">in</span> private_input[<span class="c2">'member_tokens'</span>]
+    <span class="c1">return</span> { <span class="c2">'matched'</span>: matched }
+    <span class="c0"># no branch on balance, tier, or any other attribute</span>
+    <span class="c0"># only asks: is this token in the set?</span>
+
+<span class="c6">─── OUTPUT  (only this exits Silence Compute) ────────────────────────</span>
+<span class="c5">{ 'matched': True }
+
+   Booking.com learns  →  whether this traveler holds an account. Nothing else.
+   Partner does NOT reveal  →  member list · list size · account details
+                               balance · tier · transaction history</span>`;
+}
+
+function cThresh() {
+  const budget=BUDGETS[S.sc], rw=calcR(), fc=PKG-rw.tot;
+  return `<span class="c0">// AP3 — Step 2: Threshold Check
+// Question: Is (package_cost − eligible_rewards) ≤ traveler_budget?
+// Each partner's private data stays in their own system.</span>
+
+<span class="c1">const</span> PACKAGE = <span class="c3">${PKG}</span>, BUDGET = <span class="c3">${budget}</span>;
+
+<span class="c0">// Marriott: evaluate points + free night award</span>
+<span class="c1">const</span> mInd = <span class="c1">await</span> silenceCompute.<span class="c4">runThreshold</span>({
+  protocol:<span class="c2">"AP3/Threshold/v1"</span>, session:psi.session_token,
+  partner:<span class="c2">"marriott-bonvoy"</span>, fn:<span class="c2">"max_reward_value_for_stay"</span>,
+  params:{ dest:<span class="c2">"HI"</span>, nights:<span class="c3">5</span>, rooms:<span class="c3">2</span> }
+}); <span class="c5">// → { reward_usd: ${(S.scope.m.en&&S.cp.m)?((S.scope.m.fn?450:0)+S.scope.m.nights*450):0}, eligible: ${S.scope.m.en&&S.cp.m} }</span>
+
+<span class="c0">// United: evaluate miles for award travel</span>
+<span class="c1">const</span> uInd = <span class="c1">await</span> silenceCompute.<span class="c4">runThreshold</span>({
+  protocol:<span class="c2">"AP3/Threshold/v1"</span>, session:psi.session_token,
+  partner:<span class="c2">"united-mileageplus"</span>, fn:<span class="c2">"miles_for_award_travel"</span>,
+  params:{ origin:<span class="c2">"ORD"</span>, dest:<span class="c2">"HNL"</span>, pax:<span class="c3">${S.scope.u.pax}</span> }
+}); <span class="c5">// → { reward_usd: ${(S.scope.u.en&&S.cp.u)?S.scope.u.pax*300:0}, eligible: ${S.scope.u.en&&S.cp.u} }</span>
+
+<span class="c0">// Amex: SFE for benefit applicability</span>
+<span class="c1">const</span> aInd = <span class="c1">await</span> silenceCompute.<span class="c4">runSFE</span>({
+  protocol:<span class="c2">"AP3/SFE/v1"</span>, session:psi.session_token,
+  partner:<span class="c2">"amex"</span>, fn:<span class="c2">"benefit_applicability"</span>,
+  params:{ category:<span class="c2">"hotel"</span>, region:<span class="c2">"US-HI"</span>, amount:<span class="c3">${PKG}</span> }
+}); <span class="c5">// → { reward_usd: ${(S.scope.a.en&&S.cp.a)?((S.scope.a.hc?200:0)+S.scope.a.pwp):0}, hotel_credit: ${S.scope.a.en&&S.cp.a&&S.scope.a.hc} }</span>
+
+<span class="c0">// Threshold evaluation</span>
+<span class="c1">const</span> totalRewards = mInd.reward_usd + uInd.reward_usd + aInd.reward_usd; <span class="c0">// = ${rw.tot}</span>
+<span class="c1">const</span> finalCost    = PACKAGE - totalRewards;                              <span class="c0">// = ${fc}</span>
+<span class="c1">const</span> withinBudget = finalCost <= BUDGET;                                 <span class="c5">// = ${fc<=budget}</span>`;
+}
+
+function cDiscountFunc() {
+  const s = S.scope, cp = S.cp;
+  const mOn = s.m.en && cp.m, uOn = s.u.en && cp.u, aOn = s.a.en && cp.a;
+  // Illustrative partner-side values — realistic but assumed for demo
+  const mPts = 250000, mPtVal = 0.005, mFN = 1;
+  const uMiles = 300000, uMilesPerTkt = 35000, uTktVal = 300;
+  const aCredit = 200;
+  // Computed outputs (match calcR)
+  const mFNVal = (mOn && s.m.fn && mFN > 0) ? 450 : 0;
+  const mNights = mOn ? s.m.nights : 0;
+  const mNightVal = mNights * 450;
+  const mOut = mOn ? mFNVal + mNightVal : 0;
+  const uPax = uOn ? s.u.pax : 0;
+  const uOut = uOn ? uPax * uTktVal : 0;
+  const aOut = aOn ? (s.a.hc ? aCredit : 0) + s.a.pwp : 0;
+
+  return `<span class="c7">══ SECURE FUNCTIONS — Discount Evaluation ═════════════════════
+   Runs inside Silence Compute after PSI confirms identity
+   One function called per consented partner</span>
+<span class="c0">   These inputs exist only inside the secure enclave.
+   Booking.com never receives the private section — only the OUTPUT.</span>
+
+<span class="c7">━━━ MARRIOTT BONVOY ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+
+<span class="c6">─── PRIVATE INPUT  (Marriott's data — stays inside Silence Compute) ─</span>
+<span class="c0">#   Booking.com never sees these values</span>
+private_input = {
+    <span class="c2">'points_balance'</span>:    <span class="c3">${mPts.toLocaleString()}</span>,     <span class="c0"># ← Booking.com does not see this</span>
+    <span class="c2">'free_night_awards'</span>: <span class="c3">${mFN}</span>,          <span class="c0"># ← Booking.com does not see this</span>
+    <span class="c2">'point_value_usd'</span>:   <span class="c3">${mPtVal}</span>,       <span class="c0"># ← Booking.com does not see this</span>
+}
+
+<span class="c6">─── PUBLIC INPUT  (Booking.com's booking parameters) ────────────</span>
+<span class="c0">#   Sent openly — Booking.com knows these</span>
+public_input = {
+    <span class="c2">'hotel_nightly_rate'</span>:  <span class="c3">450</span>,            <span class="c0"># USD, from booking</span>
+    <span class="c2">'max_nights_to_cover'</span>: <span class="c3">${s.m.nights}</span>,           <span class="c0"># scope setting</span>
+    <span class="c2">'include_free_night'</span>:  <span class="c3">${s.m.fn}</span>,          <span class="c0"># scope setting</span>
+}
+
+<span class="c6">─── COMPUTATION (inside enclave) ────────────────────────────────</span>
+<span class="c0"># Free Night Award: ${mFN} award × $450/night</span>
+free_night_value   = <span class="c3">${mFNVal}</span>                        <span class="c5"># = $${mFNVal}</span>
+
+<span class="c0"># Points: $450/night ÷ $${mPtVal}/pt = ${(450/mPtVal).toLocaleString()} pts needed per night</span>
+<span class="c0">#         ${mPts.toLocaleString()} pts available ÷ ${(450/mPtVal).toLocaleString()} pts/night = ${Math.floor(mPts/(450/mPtVal))} nights possible</span>
+<span class="c0">#         capped at max_nights_to_cover = ${s.m.nights}</span>
+points_value       = <span class="c3">${s.m.nights}</span> nights × <span class="c3">450</span>            <span class="c5"># = $${mNightVal}</span>
+
+discount           = free_night_value + points_value     <span class="c5"># = $${mOut}</span>
+
+<span class="c6">─── OUTPUT  (only this crosses the boundary to Booking.com) ─────</span>
+<span class="c5">{ 'discount_usd': ${mOut} }    ← this is ALL Booking.com receives</span>
+
+<span class="c7">━━━ UNITED MILEAGEPLUS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+
+<span class="c6">─── PRIVATE INPUT  (United's data — stays inside Silence Compute) ───</span>
+<span class="c0">#   Booking.com never sees these values</span>
+private_input = {
+    <span class="c2">'miles_balance'</span>:         <span class="c3">${uMiles.toLocaleString()}</span>,   <span class="c0"># ← Booking.com does not see this</span>
+    <span class="c2">'miles_per_award_ticket'</span>: <span class="c3">${uMilesPerTkt.toLocaleString()}</span>,  <span class="c0"># ← Booking.com does not see this</span>
+    <span class="c2">'ticket_value_usd'</span>:      <span class="c3">${uTktVal}</span>,      <span class="c0"># ← Booking.com does not see this</span>
+    <span class="c2">'award_route_available'</span>: <span class="c3">True</span>,          <span class="c0"># ← Booking.com does not see this</span>
+}
+
+<span class="c6">─── PUBLIC INPUT  (Booking.com's booking parameters) ────────────</span>
+public_input = {
+    <span class="c2">'origin'</span>:           <span class="c2">'ORD'</span>,  <span class="c2">'destination'</span>: <span class="c2">'HNL'</span>,
+    <span class="c2">'max_pax_to_cover'</span>: <span class="c3">${s.u.pax}</span>,             <span class="c0"># scope setting</span>
+}
+
+<span class="c6">─── COMPUTATION (inside enclave) ────────────────────────────────</span>
+<span class="c0"># ${uMiles.toLocaleString()} miles ÷ ${uMilesPerTkt.toLocaleString()} miles/ticket = ${Math.floor(uMiles/uMilesPerTkt)} tickets available</span>
+<span class="c0"># capped at max_pax_to_cover = ${s.u.pax}</span>
+pax_covered  = <span class="c3">${uPax}</span>
+discount     = <span class="c3">${uPax}</span> × $<span class="c3">${uTktVal}</span>/ticket                <span class="c5"># = $${uOut}</span>
+
+<span class="c6">─── OUTPUT  (only this crosses the boundary to Booking.com) ─────</span>
+<span class="c5">{ 'discount_usd': ${uOut} }    ← this is ALL Booking.com receives</span>
+
+<span class="c7">━━━ AMERICAN EXPRESS — SFE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+<span class="c0"># SFE (not a simple threshold) — benefit eligibility is a rule</span>
+<span class="c0"># evaluation over multiple private attributes, not a single number</span>
+
+<span class="c6">─── PRIVATE INPUT  (Amex's data — stays inside Silence Compute) ─────</span>
+<span class="c0">#   Booking.com never sees these values</span>
+private_input = {
+    <span class="c2">'hotel_credit_remaining'</span>: <span class="c3">${aCredit}</span>,     <span class="c0"># ← Booking.com does not see this</span>
+    <span class="c2">'benefit_rules'</span>:         {...},          <span class="c0"># ← proprietary — never revealed</span>
+    <span class="c2">'membership_rewards_pts'</span>: <span class="c3">80,000</span>,       <span class="c0"># ← Booking.com does not see this</span>
+}
+
+<span class="c6">─── PUBLIC INPUT  (Booking.com's booking parameters) ────────────</span>
+public_input = {
+    <span class="c2">'booking_category'</span>: <span class="c2">'hotel'</span>,
+    <span class="c2">'merchant_region'</span>:  <span class="c2">'US-HI'</span>,
+    <span class="c2">'booking_amount'</span>:   <span class="c3">${PKG.toLocaleString()}</span>,
+    <span class="c2">'pwp_cap'</span>:          <span class="c3">${s.a.pwp}</span>,             <span class="c0"># scope setting</span>
+}
+
+<span class="c6">─── COMPUTATION (inside enclave) ────────────────────────────────</span>
+<span class="c0"># benefit_rules.hotel_credit_applies('hotel', 'US-HI') → True</span>
+hotel_credit = <span class="c4">min</span>(hotel_credit_remaining, <span class="c3">200</span>)     <span class="c5"># = $${s.a.hc?aCredit:0}</span>${s.a.pwp>0?`
+<span class="c0"># pwp_cap set → apply Pay with Points</span>
+pwp_discount = <span class="c4">min</span>(pwp_cap, membership_rewards_pts × rate)  <span class="c5"># = $${s.a.pwp}</span>`:''}
+discount     = hotel_credit${s.a.pwp>0?' + pwp_discount':''}                        <span class="c5"># = $${aOut}</span>
+
+<span class="c6">─── OUTPUT  (only this crosses the boundary to Booking.com) ─────</span>
+<span class="c5">{ 'discount_usd': ${aOut} }    ← this is ALL Booking.com receives</span>`;
+}
+</script>
+</body>
+</html>
