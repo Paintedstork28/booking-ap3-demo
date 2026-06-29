@@ -849,12 +849,86 @@ function appendConfirm(ref, price) {
       <div class="cfmemail">Confirmation sent to ambikapande28@gmail.com</div>
     </div></div>`);
   appendMsg(false,'Your Hawaii family trip is confirmed. Enjoy your holiday! 🌺');
-  setTimeout(()=>appendMsg(false,`<strong>Here's what happened behind the scenes.</strong><br><br>
-Your package came in at <strong>$${PKG.toLocaleString()}</strong> — above your budget. Rather than ask you to manually connect every loyalty account upfront, I checked whether you were eligible for rewards across Marriott Bonvoy, United MileagePlus, and American Express — with your consent.<br><br>
-At no point was your raw account data, loyalty balance, or personal identifiers shared with Booking.com or between partners. Your identity was matched using a privacy-preserving check — each partner confirmed you were a member without revealing their member records to anyone else.<br><br>
-Each partner then evaluated whether you had applicable rewards for this specific booking. They returned only eligibility indicators — signals that said <em>"yes, this traveler has sufficient rewards to cover this portion"</em> — not balances, not account history, not transaction records.<br><br>
-Booking.com used those indicators to calculate your package options and recommend the best one. Your rewards were only debited after you explicitly connected your accounts and confirmed the booking.<br><br>
-<span style="color:#888;font-size:13px">Powered by the Agent Privacy-Preserving Protocol · Silence Compute</span>`), 1200);
+  const names=[S.cp.m&&'Marriott Bonvoy',S.cp.u&&'United MileagePlus',S.cp.a&&'American Express'].filter(Boolean);
+  const rw2=calcR();
+  setTimeout(()=>appendCard(`<div style="background:#fff;border:1px solid #dbe9f7;border-radius:10px;overflow:hidden;font-size:13px;line-height:1.6">
+
+    <div style="background:#003580;color:#fff;padding:12px 16px">
+      <div style="font-weight:700;font-size:14px">Here's what happened behind the scenes</div>
+      <div style="opacity:.8;font-size:12px;margin-top:2px">A plain-language summary of how the Agent Privacy-Preserving Protocol worked for this booking</div>
+    </div>
+
+    <div style="padding:14px 16px;border-bottom:1px solid #eef2f7">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="background:#003580;color:#fff;border-radius:50%;width:22px;height:22px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">1</div>
+        <div><strong>You gave consent</strong><br>
+        Before any data was touched, Booking.com asked your permission to check rewards eligibility. You chose which partners to include: <em>${names.join(', ')}</em>. Nothing was shared before this step.</div>
+      </div>
+    </div>
+
+    <div style="padding:14px 16px;border-bottom:1px solid #eef2f7">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="background:#003580;color:#fff;border-radius:50%;width:22px;height:22px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">2</div>
+        <div><strong>Identity confirmed — no identifiers exchanged</strong><br>
+        Booking.com sent each partner a <em>hashed token</em> — a one-way fingerprint, not your email or account number. Each partner checked whether that token matched anyone in their system and replied: matched or not matched. Neither side saw the other's member list. Your identity was never transmitted in raw form.</div>
+      </div>
+    </div>
+
+    <div style="padding:14px 16px;border-bottom:1px solid #eef2f7">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="background:#003580;color:#fff;border-radius:50%;width:22px;height:22px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">3</div>
+        <div><strong>Discount computed inside Silence Compute — only the result left each partner</strong><br>
+        Booking.com sent each partner the booking details and the gap to close ($${(PKG-BUDGETS[S.sc]).toLocaleString()}). Each partner ran a function on their own data — inside a secure enclave — to calculate how much reward value they could apply. The function ran privately. Only one number left their system: the eligible discount in USD.<br><br>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+          ${S.cp.m&&S.scope.m.en?`<span style="background:#e8f5e9;color:#1b5e20;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600">Marriott → $${((S.scope.m.fn?450:0)+S.scope.m.nights*450).toLocaleString()}</span>`:''}
+          ${S.cp.u&&S.scope.u.en?`<span style="background:#e3f2fd;color:#0d47a1;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600">United → $${(S.scope.u.pax*300).toLocaleString()}</span>`:''}
+          ${S.cp.a&&S.scope.a.en?`<span style="background:#fce4ec;color:#880e4f;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600">Amex → $${((S.scope.a.hc?200:0)+S.scope.a.pwp).toLocaleString()}</span>`:''}
+        </div></div>
+      </div>
+    </div>
+
+    <div style="padding:14px 16px;border-bottom:1px solid #eef2f7">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="background:#003580;color:#fff;border-radius:50%;width:22px;height:22px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">4</div>
+        <div><strong>Package built from eligibility signals — accounts linked only after your choice</strong><br>
+        Booking.com received the discount amounts and used them to calculate your options. Your loyalty accounts were only linked after you selected a package and confirmed. The actual points and miles debit happened at that point — not before.</div>
+      </div>
+    </div>
+
+    <div style="padding:14px 16px;border-bottom:1px solid #eef2f7">
+      <div style="font-weight:700;color:#003580;margin-bottom:10px">What stayed private — and with whom</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="background:#f0f4ff;border-radius:8px;padding:10px 12px">
+          <div style="font-weight:700;font-size:12px;color:#003580;margin-bottom:6px">Booking.com's agent kept private</div>
+          <div style="color:#333;font-size:12px;line-height:1.8">
+            — Your customer ID and trip request<br>
+            — The $${(PKG-BUDGETS[S.sc]).toLocaleString()} gap and full booking parameters<br>
+            — Which partners you consented to<br>
+            — Its full user base and booking history
+          </div>
+        </div>
+        <div style="background:#f5f5f5;border-radius:8px;padding:10px 12px">
+          <div style="font-weight:700;font-size:12px;color:#444;margin-bottom:6px">Each partner's agent kept private</div>
+          <div style="color:#333;font-size:12px;line-height:1.8">
+            — Your loyalty balance, miles, and points<br>
+            — Redemption rates and award rules<br>
+            — Your account details and transaction history<br>
+            — Their full member list
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:12px 16px;background:#f8fbff">
+      <div style="font-weight:700;color:#003580;margin-bottom:6px;font-size:12px">What crossed the boundary — and only this</div>
+      <div style="display:flex;flex-direction:column;gap:5px;font-size:12px">
+        <div style="display:flex;align-items:center;gap:8px"><span style="background:#0071c2;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap">Booking.com → Partners</span> Hashed identity token + booking parameters (trip, dates, gap amount)</div>
+        <div style="display:flex;align-items:center;gap:8px"><span style="background:#008234;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap">Partners → Booking.com</span> Eligible discount in USD — nothing else</div>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:#888">Powered by the Agent Privacy-Preserving Protocol · Silence Compute</div>
+    </div>
+
+  </div>`), 1200);
 
 }
 
