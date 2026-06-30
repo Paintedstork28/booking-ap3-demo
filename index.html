@@ -877,9 +877,13 @@ function appendConfirm(ref, price) {
     <div style="padding:14px 16px;border-bottom:1px solid #eef2f7">
       <div style="display:flex;gap:10px;align-items:flex-start">
         <div style="background:#003580;color:#fff;border-radius:50%;width:22px;height:22px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">3</div>
-        <div><strong>Discount computed inside Silence Compute — only the result left each partner</strong><br>
-        Booking.com sent each partner the booking details and the gap to close ($${(PKG-BUDGETS[S.sc]).toLocaleString()}). Each partner ran a function on their own data — inside a secure enclave — to calculate how much reward value they could apply. The function ran privately. Only one number left their system: the eligible discount in USD.<br><br>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+        <div><strong>Discount computed inside Silence Compute — neither side saw the other's inputs</strong><br>
+        Neither Booking.com nor the partners sent data to each other. Both fed their own private inputs into Silence Compute. The enclave ran one function: <em>points balance × value per point</em>. Only the dollar result came out.<br><br>
+        <div style="background:#f8fbff;border:1px solid #dbe9f7;border-radius:6px;padding:8px 12px;font-size:12px;margin-bottom:8px;line-height:1.8">
+          <span style="font-weight:700;color:#003580">Booking.com kept private:</span> your identity, travel dates, hotel property, flight route, number of travellers<br>
+          <span style="font-weight:700;color:#444">Each partner kept private:</span> points balance, value per point
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
           ${S.cp.m&&S.scope.m.en?`<span style="background:#e8f5e9;color:#1b5e20;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600">Marriott → $${((S.scope.m.fn?450:0)+S.scope.m.nights*450).toLocaleString()}</span>`:''}
           ${S.cp.u&&S.scope.u.en?`<span style="background:#e3f2fd;color:#0d47a1;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600">United → $${(S.scope.u.pax*300).toLocaleString()}</span>`:''}
           ${S.cp.a&&S.scope.a.en?`<span style="background:#fce4ec;color:#880e4f;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600">Amex → $${((S.scope.a.hc?200:0)+S.scope.a.pwp).toLocaleString()}</span>`:''}
@@ -900,30 +904,34 @@ function appendConfirm(ref, price) {
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div style="background:#f0f4ff;border-radius:8px;padding:10px 12px">
           <div style="font-weight:700;font-size:12px;color:#003580;margin-bottom:6px">Booking.com's agent kept private</div>
-          <div style="color:#333;font-size:12px;line-height:1.8">
-            — Your customer ID and trip request<br>
-            — The $${(PKG-BUDGETS[S.sc]).toLocaleString()} gap and full booking parameters<br>
-            — Which partners you consented to<br>
-            — Its full user base and booking history
+          <div style="color:#333;font-size:12px;line-height:1.9">
+            — Your customer identity<br>
+            — Travel dates<br>
+            — Hotel property<br>
+            — Flight route and number of travellers<br>
+            — Its negotiated rates
           </div>
+          <div style="margin-top:8px;font-size:11px;color:#0071c2;font-style:italic">Why: if partners knew who was booking, when, and where, they could reach the customer directly.</div>
         </div>
         <div style="background:#f5f5f5;border-radius:8px;padding:10px 12px">
           <div style="font-weight:700;font-size:12px;color:#444;margin-bottom:6px">Each partner's agent kept private</div>
-          <div style="color:#333;font-size:12px;line-height:1.8">
-            — Your loyalty balance, miles, and points<br>
-            — Redemption rates and award rules<br>
-            — Your account details and transaction history<br>
-            — Their full member list
+          <div style="color:#333;font-size:12px;line-height:1.9">
+            — Points balance<br>
+            — Value per point<br>
+            — Redemption rules<br>
+            — Member list and account details
           </div>
+          <div style="margin-top:8px;font-size:11px;color:#666;font-style:italic">Why: loyalty economics are proprietary. No partner wants Booking.com or competitors seeing their rates.</div>
         </div>
       </div>
     </div>
 
     <div style="padding:12px 16px;background:#f8fbff">
-      <div style="font-weight:700;color:#003580;margin-bottom:6px;font-size:12px">What crossed the boundary — and only this</div>
-      <div style="display:flex;flex-direction:column;gap:5px;font-size:12px">
-        <div style="display:flex;align-items:center;gap:8px"><span style="background:#0071c2;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap">Booking.com → Partners</span> Hashed identity token + booking parameters (trip, dates, gap amount)</div>
-        <div style="display:flex;align-items:center;gap:8px"><span style="background:#008234;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap">Partners → Booking.com</span> Eligible discount in USD — nothing else</div>
+      <div style="font-weight:700;color:#003580;margin-bottom:8px;font-size:12px">How the computation actually worked</div>
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:12px">
+        <div style="display:flex;align-items:center;gap:8px"><span style="background:#0071c2;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap">Booking.com → Silence Compute</span> Private inputs (identity, dates, property, route)</div>
+        <div style="display:flex;align-items:center;gap:8px"><span style="background:#444;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap">Partners → Silence Compute</span> Private inputs (points balance, value per point)</div>
+        <div style="display:flex;align-items:center;gap:8px"><span style="background:#008234;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap">Silence Compute → Booking.com</span> Eligible discount in USD per partner — nothing else</div>
       </div>
       <div style="margin-top:10px;font-size:11px;color:#888">Powered by the Agent Privacy-Preserving Protocol · Silence Compute</div>
     </div>
@@ -1028,112 +1036,53 @@ function cThresh() {
 function cDiscountFunc() {
   const s = S.scope, cp = S.cp;
   const mOn = s.m.en && cp.m, uOn = s.u.en && cp.u, aOn = s.a.en && cp.a;
-  // Illustrative partner-side values — realistic but assumed for demo
-  const mPts = 250000, mPtVal = 0.005, mFN = 1;
-  const uMiles = 300000, uMilesPerTkt = 35000, uTktVal = 300;
-  const aCredit = 200;
-  // Computed outputs (match calcR)
-  const mFNVal = (mOn && s.m.fn && mFN > 0) ? 450 : 0;
-  const mNights = mOn ? s.m.nights : 0;
-  const mNightVal = mNights * 450;
-  const mOut = mOn ? mFNVal + mNightVal : 0;
-  const uPax = uOn ? s.u.pax : 0;
-  const uOut = uOn ? uPax * uTktVal : 0;
-  const aOut = aOn ? (s.a.hc ? aCredit : 0) + s.a.pwp : 0;
+  // Illustrative values that produce the same outputs as calcR defaults
+  const mPts = 270000, mPtVal = 0.005;
+  const uMiles = 200000, uMileVal = 0.003;
+  const aPts = 80000, aPtVal = 0.0025;
+  const mOut = mOn ? mPts * mPtVal : 0;
+  const uOut = uOn ? uMiles * uMileVal : 0;
+  const aOut = aOn ? aPts * aPtVal : 0;
 
-  return `<span class="c7">══ SECURE FUNCTIONS — Discount Evaluation ═════════════════════
-   Runs inside Silence Compute after PSI confirms identity
-   One function called per consented partner</span>
-<span class="c0">   These inputs exist only inside the secure enclave.
-   Booking.com never receives the private section — only the OUTPUT.</span>
+  const gap = PKG - BUDGETS[S.sc];
+  const tot = mOut + uOut + aOut;
+  return `<span class="c7">══ JOINT PRIVATE COMPUTATION — Discount Evaluation ════════════
+   Both sides contribute private inputs. Neither sees the other's data.
+   Same function runs for each consented partner.</span>
 
-<span class="c7">━━━ MARRIOTT BONVOY ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
-
-<span class="c6">─── PRIVATE INPUT  (Marriott's data — stays inside Silence Compute) ─</span>
-<span class="c0">#   Booking.com never sees these values</span>
-private_input = {
-    <span class="c2">'points_balance'</span>:    <span class="c3">${mPts.toLocaleString()}</span>,     <span class="c0"># ← Booking.com does not see this</span>
-    <span class="c2">'free_night_awards'</span>: <span class="c3">${mFN}</span>,          <span class="c0"># ← Booking.com does not see this</span>
-    <span class="c2">'point_value_usd'</span>:   <span class="c3">${mPtVal}</span>,       <span class="c0"># ← Booking.com does not see this</span>
+<span class="c6">─── BOOKING.COM's PRIVATE INPUTS  (partners never see this) ─────</span>
+booking_inputs = {
+    <span class="c2">'customer_identity'</span>: <span class="c4">HMAC</span>(customer.id, session_key), <span class="c0"># ← partners never see this</span>
+    <span class="c2">'hotel_property'</span>:    <span class="c2">'marriott-waikiki-beach'</span>,       <span class="c0"># ← partners never see this</span>
+    <span class="c2">'travel_dates'</span>:      (<span class="c2">'2026-08-01'</span>, <span class="c2">'2026-08-06'</span>),   <span class="c0"># ← partners never see this</span>
+    <span class="c2">'flight_route'</span>:      (<span class="c2">'ORD'</span>, <span class="c2">'HNL'</span>),                 <span class="c0"># ← partners never see this</span>
+    <span class="c2">'num_travellers'</span>:    <span class="c3">5</span>,                               <span class="c0"># ← partners never see this</span>
 }
+<span class="c0"># Why private: if partners knew who was travelling, when and where,
+# they could market directly and cut Booking.com out.</span>
 
-<span class="c6">─── PUBLIC INPUT  (Booking.com's booking parameters) ────────────</span>
-<span class="c0">#   Sent openly — Booking.com knows these</span>
-public_input = {
-    <span class="c2">'hotel_nightly_rate'</span>:  <span class="c3">450</span>,            <span class="c0"># USD, from booking</span>
-    <span class="c2">'max_nights_to_cover'</span>: <span class="c3">${s.m.nights}</span>,           <span class="c0"># scope setting</span>
-    <span class="c2">'include_free_night'</span>:  <span class="c3">${s.m.fn}</span>,          <span class="c0"># scope setting</span>
+<span class="c6">─── PARTNER's PRIVATE INPUTS  (Booking.com never sees this) ─────</span>
+<span class="c0">#   Same input structure for Marriott, United, and Amex</span>
+partner_inputs = {
+    <span class="c2">'points_balance'</span>:  XXXXXX,   <span class="c0"># ← Booking.com never sees this</span>
+    <span class="c2">'value_per_point'</span>: X.XXXX,   <span class="c0"># ← Booking.com never sees this</span>
 }
+<span class="c0"># Why private: loyalty economics are proprietary. No partner wants
+# Booking.com or competitors seeing their redemption rates.</span>
 
-<span class="c6">─── COMPUTATION (inside enclave) ────────────────────────────────</span>
-<span class="c0"># Free Night Award: ${mFN} award × $450/night</span>
-free_night_value   = <span class="c3">${mFNVal}</span>                        <span class="c5"># = $${mFNVal}</span>
+<span class="c6">─── FUNCTION  (runs inside Silence Compute — neither party sees this execute) ──</span>
+<span class="c1">def</span> <span class="c4">evaluate_discount</span>(booking_inputs, partner_inputs):
+    discount = partner_inputs[<span class="c2">'points_balance'</span>] * partner_inputs[<span class="c2">'value_per_point'</span>]
+    <span class="c1">return</span> { <span class="c2">'discount_usd'</span>: discount }
 
-<span class="c0"># Points: $450/night ÷ $${mPtVal}/pt = ${(450/mPtVal).toLocaleString()} pts needed per night</span>
-<span class="c0">#         ${mPts.toLocaleString()} pts available ÷ ${(450/mPtVal).toLocaleString()} pts/night = ${Math.floor(mPts/(450/mPtVal))} nights possible</span>
-<span class="c0">#         capped at max_nights_to_cover = ${s.m.nights}</span>
-points_value       = <span class="c3">${s.m.nights}</span> nights × <span class="c3">450</span>            <span class="c5"># = $${mNightVal}</span>
+<span class="c6">─── OUTPUT PER PARTNER  (only this exits Silence Compute) ────────</span>
+<span class="c5">${mOn?`Marriott  →  { 'discount_usd': ${mOut.toLocaleString()} }   (${mPts.toLocaleString()} pts × $${mPtVal}/pt)\n`:''}${uOn?`United    →  { 'discount_usd': ${uOut.toLocaleString()} }     (${uMiles.toLocaleString()} miles × $${uMileVal}/mile)\n`:''}${aOn?`Amex      →  { 'discount_usd': ${aOut.toLocaleString()} }     (${aPts.toLocaleString()} pts × $${aPtVal}/pt)\n`:''}
+─────────────────────────────────────────────────────
+Total discount  =  $${tot.toLocaleString()}
+Gap to close    =  $${gap.toLocaleString()}
+Threshold met?  =  $${tot.toLocaleString()} ≥ $${gap.toLocaleString()}  →  ${tot>=gap?'✓ Yes':'✗ No'}
 
-discount           = free_night_value + points_value     <span class="c5"># = $${mOut}</span>
-
-<span class="c6">─── OUTPUT  (only this crosses the boundary to Booking.com) ─────</span>
-<span class="c5">{ 'discount_usd': ${mOut} }    ← this is ALL Booking.com receives</span>
-
-<span class="c7">━━━ UNITED MILEAGEPLUS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
-
-<span class="c6">─── PRIVATE INPUT  (United's data — stays inside Silence Compute) ───</span>
-<span class="c0">#   Booking.com never sees these values</span>
-private_input = {
-    <span class="c2">'miles_balance'</span>:         <span class="c3">${uMiles.toLocaleString()}</span>,   <span class="c0"># ← Booking.com does not see this</span>
-    <span class="c2">'miles_per_award_ticket'</span>: <span class="c3">${uMilesPerTkt.toLocaleString()}</span>,  <span class="c0"># ← Booking.com does not see this</span>
-    <span class="c2">'ticket_value_usd'</span>:      <span class="c3">${uTktVal}</span>,      <span class="c0"># ← Booking.com does not see this</span>
-    <span class="c2">'award_route_available'</span>: <span class="c3">True</span>,          <span class="c0"># ← Booking.com does not see this</span>
-}
-
-<span class="c6">─── PUBLIC INPUT  (Booking.com's booking parameters) ────────────</span>
-public_input = {
-    <span class="c2">'origin'</span>:           <span class="c2">'ORD'</span>,  <span class="c2">'destination'</span>: <span class="c2">'HNL'</span>,
-    <span class="c2">'max_pax_to_cover'</span>: <span class="c3">${s.u.pax}</span>,             <span class="c0"># scope setting</span>
-}
-
-<span class="c6">─── COMPUTATION (inside enclave) ────────────────────────────────</span>
-<span class="c0"># ${uMiles.toLocaleString()} miles ÷ ${uMilesPerTkt.toLocaleString()} miles/ticket = ${Math.floor(uMiles/uMilesPerTkt)} tickets available</span>
-<span class="c0"># capped at max_pax_to_cover = ${s.u.pax}</span>
-pax_covered  = <span class="c3">${uPax}</span>
-discount     = <span class="c3">${uPax}</span> × $<span class="c3">${uTktVal}</span>/ticket                <span class="c5"># = $${uOut}</span>
-
-<span class="c6">─── OUTPUT  (only this crosses the boundary to Booking.com) ─────</span>
-<span class="c5">{ 'discount_usd': ${uOut} }    ← this is ALL Booking.com receives</span>
-
-<span class="c7">━━━ AMERICAN EXPRESS — SFE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
-<span class="c0"># SFE (not a simple threshold) — benefit eligibility is a rule</span>
-<span class="c0"># evaluation over multiple private attributes, not a single number</span>
-
-<span class="c6">─── PRIVATE INPUT  (Amex's data — stays inside Silence Compute) ─────</span>
-<span class="c0">#   Booking.com never sees these values</span>
-private_input = {
-    <span class="c2">'hotel_credit_remaining'</span>: <span class="c3">${aCredit}</span>,     <span class="c0"># ← Booking.com does not see this</span>
-    <span class="c2">'benefit_rules'</span>:         {...},          <span class="c0"># ← proprietary — never revealed</span>
-    <span class="c2">'membership_rewards_pts'</span>: <span class="c3">80,000</span>,       <span class="c0"># ← Booking.com does not see this</span>
-}
-
-<span class="c6">─── PUBLIC INPUT  (Booking.com's booking parameters) ────────────</span>
-public_input = {
-    <span class="c2">'booking_category'</span>: <span class="c2">'hotel'</span>,
-    <span class="c2">'merchant_region'</span>:  <span class="c2">'US-HI'</span>,
-    <span class="c2">'booking_amount'</span>:   <span class="c3">${PKG.toLocaleString()}</span>,
-    <span class="c2">'pwp_cap'</span>:          <span class="c3">${s.a.pwp}</span>,             <span class="c0"># scope setting</span>
-}
-
-<span class="c6">─── COMPUTATION (inside enclave) ────────────────────────────────</span>
-<span class="c0"># benefit_rules.hotel_credit_applies('hotel', 'US-HI') → True</span>
-hotel_credit = <span class="c4">min</span>(hotel_credit_remaining, <span class="c3">200</span>)     <span class="c5"># = $${s.a.hc?aCredit:0}</span>${s.a.pwp>0?`
-<span class="c0"># pwp_cap set → apply Pay with Points</span>
-pwp_discount = <span class="c4">min</span>(pwp_cap, membership_rewards_pts × rate)  <span class="c5"># = $${s.a.pwp}</span>`:''}
-discount     = hotel_credit${s.a.pwp>0?' + pwp_discount':''}                        <span class="c5"># = $${aOut}</span>
-
-<span class="c6">─── OUTPUT  (only this crosses the boundary to Booking.com) ─────</span>
-<span class="c5">{ 'discount_usd': ${aOut} }    ← this is ALL Booking.com receives</span>`;
+Booking.com learns: a dollar amount per partner. Nothing else.</span>`;
 }
 </script>
 </body>
