@@ -519,7 +519,7 @@ function appendConsentSel() {
         <div class="plogo pa">AX</div><div><div class="pname">American Express</div><div class="pdesc">Card &amp; rewards partner</div></div></div>
     </div>
     <button class="btn-run" id="btnRun" onclick="runCheck()">🔒 Check rewards eligibility</button>
-    <div class="privnote">🔐 Powered by Agent Privacy-Preserving Protocol · Silence Compute</div>
+    <div class="privnote">🔐 Powered by Agent Privacy-Preserving Protocol (AP3)</div>
   </div>`);
 }
 
@@ -578,7 +578,7 @@ function appendAP3() {
       </div>
       <details class="cdrop"><summary>View protocol code — PSI</summary>
         <div class="cblk">${cPSI()}</div></details>
-      <details class="cdrop sc"><summary>🔐 View secure function — runs inside Silence Compute</summary>
+      <details class="cdrop sc"><summary>🔐 View secure function — computed via AP3</summary>
         <div class="cblk">${cPSIFunc()}</div></details>
     </div>
 
@@ -597,7 +597,7 @@ function appendAP3() {
       <div class="tr" id="trResult"></div>
       <details class="cdrop"><summary>View protocol code — Threshold Check</summary>
         <div class="cblk">${cThresh()}</div></details>
-      <details class="cdrop sc"><summary>🔐 View secure function — runs inside Silence Compute</summary>
+      <details class="cdrop sc"><summary>🔐 View secure function — computed via AP3</summary>
         <div class="cblk">${cDiscountFunc()}</div></details>
     </div>
   </div>`);
@@ -877,8 +877,8 @@ function appendConfirm(ref, price) {
     <div style="padding:14px 16px;border-bottom:1px solid #eef2f7">
       <div style="display:flex;gap:10px;align-items:flex-start">
         <div style="background:#003580;color:#fff;border-radius:50%;width:22px;height:22px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">3</div>
-        <div><strong>Discount computed inside Silence Compute — neither side saw the other's inputs</strong><br>
-        Neither Booking.com nor the partners sent data to each other. Both fed their own private inputs into Silence Compute. The enclave ran one function: <em>points balance × value per point</em>. Only the dollar result came out.<br><br>
+        <div><strong>Discount computed via AP3 — neither side saw the other's inputs</strong><br>
+        Booking.com's agent sent its private inputs to each partner agent via AP3. Each partner ran one function — <em>points balance × value per point</em> — on their own data and returned only the dollar result. No raw data was exchanged in either direction.<br><br>
         <div style="background:#f8fbff;border:1px solid #dbe9f7;border-radius:6px;padding:8px 12px;font-size:12px;margin-bottom:8px;line-height:1.8">
           <span style="font-weight:700;color:#003580">Booking.com kept private:</span> your identity, travel dates, hotel property, flight route, number of travellers<br>
           <span style="font-weight:700;color:#444">Each partner kept private:</span> points balance, value per point
@@ -929,11 +929,11 @@ function appendConfirm(ref, price) {
     <div style="padding:12px 16px;background:#f8fbff">
       <div style="font-weight:700;color:#003580;margin-bottom:8px;font-size:12px">How the computation actually worked</div>
       <div style="display:flex;flex-direction:column;gap:6px;font-size:12px">
-        <div style="display:flex;align-items:center;gap:8px"><span style="background:#0071c2;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap">Booking.com → Silence Compute</span> Private inputs (identity, dates, property, route)</div>
-        <div style="display:flex;align-items:center;gap:8px"><span style="background:#444;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap">Partners → Silence Compute</span> Private inputs (points balance, value per point)</div>
-        <div style="display:flex;align-items:center;gap:8px"><span style="background:#008234;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap">Silence Compute → Booking.com</span> Eligible discount in USD per partner — nothing else</div>
+        <div style="display:flex;align-items:center;gap:8px"><span style="background:#0071c2;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap">Booking.com → Partners</span> Private inputs sent via AP3 — partners compute discount without seeing Booking.com's data</div>
+        <div style="display:flex;align-items:center;gap:8px"><span style="background:#008234;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap">Partners → Booking.com</span> Eligible discount in USD — nothing else</div>
+        <div style="display:flex;align-items:center;gap:8px"><span style="background:#003580;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap">Booking.com agent</span> Added up partner discounts, calculated final package price</div>
       </div>
-      <div style="margin-top:10px;font-size:11px;color:#888">Powered by the Agent Privacy-Preserving Protocol · Silence Compute</div>
+      <div style="margin-top:10px;font-size:11px;color:#888">Powered by the Agent Privacy-Preserving Protocol (AP3)</div>
     </div>
 
   </div>`), 1200);
@@ -964,10 +964,10 @@ function cPSI() {
 
 function cPSIFunc() {
   return `<span class="c7">══ SECURE FUNCTION — Identity Check (PSI) ═════════════════════
-   Runs inside Silence Compute · Trusted Execution Environment
+   Computed via AP3 · Agent Privacy-Preserving Protocol
    Called once per partner. Same function for Marriott, United, Amex.</span>
 
-<span class="c6">─── PRIVATE INPUT  (partner-provided · attested to Silence Compute) ─</span>
+<span class="c6">─── PRIVATE INPUT  (partner-provided · attested to AP3) ─</span>
 <span class="c0">#   Booking.com NEVER sees this data. Not in transit, not in logs.</span>
 private_input = {
     <span class="c2">'member_tokens'</span>: <span class="c4">set</span>([...<span class="c4">HMAC</span>(member_id, partner_secret_key)...])
@@ -976,7 +976,7 @@ private_input = {
 }
 
 <span class="c6">─── PUBLIC INPUT  (Booking.com · known to initiator) ─────────────────</span>
-<span class="c0">#   Sent openly to Silence Compute. No secrets here.</span>
+<span class="c0">#   Sent openly to AP3. No secrets here.</span>
 public_input = {
     <span class="c2">'traveler_token'</span>: <span class="c4">HMAC</span>(traveler.id, session_key)
     <span class="c0">#                  ↑  one-way hash of the traveler's ID</span>
@@ -990,7 +990,7 @@ public_input = {
     <span class="c0"># no branch on balance, tier, or any other attribute</span>
     <span class="c0"># only asks: is this token in the set?</span>
 
-<span class="c6">─── OUTPUT  (only this exits Silence Compute) ────────────────────────</span>
+<span class="c6">─── OUTPUT  (only this exits AP3) ────────────────────────</span>
 <span class="c5">{ 'matched': True }
 
    Booking.com learns  →  whether this traveler holds an account. Nothing else.
@@ -1070,12 +1070,12 @@ partner_inputs = {
 <span class="c0"># Why private: loyalty economics are proprietary. No partner wants
 # Booking.com or competitors seeing their redemption rates.</span>
 
-<span class="c6">─── FUNCTION  (runs inside Silence Compute — neither party sees this execute) ──</span>
+<span class="c6">─── FUNCTION  (runs inside AP3 — neither party sees this execute) ──</span>
 <span class="c1">def</span> <span class="c4">evaluate_discount</span>(booking_inputs, partner_inputs):
     discount = partner_inputs[<span class="c2">'points_balance'</span>] * partner_inputs[<span class="c2">'value_per_point'</span>]
     <span class="c1">return</span> { <span class="c2">'discount_usd'</span>: discount }
 
-<span class="c6">─── OUTPUT PER PARTNER  (only this exits Silence Compute) ────────</span>
+<span class="c6">─── OUTPUT PER PARTNER  (only this exits AP3) ────────</span>
 <span class="c5">${mOn?`Marriott  →  { 'discount_usd': ${mOut.toLocaleString()} }   (${mPts.toLocaleString()} pts × $${mPtVal}/pt)\n`:''}${uOn?`United    →  { 'discount_usd': ${uOut.toLocaleString()} }     (${uMiles.toLocaleString()} miles × $${uMileVal}/mile)\n`:''}${aOn?`Amex      →  { 'discount_usd': ${aOut.toLocaleString()} }     (${aPts.toLocaleString()} pts × $${aPtVal}/pt)\n`:''}
 ─────────────────────────────────────────────────────
 Total discount  =  $${tot.toLocaleString()}
